@@ -2,10 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-// const jwt = require('jsonwebtoken');
-// const nodemailer = require("nodemailer");
 require('dotenv').config();
-// const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 
 const app = express();
@@ -59,7 +56,7 @@ async function run() {
       const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
 
       options.forEach(option => {
-        const optionBooked = alreadyBooked.filter(book => book.treatment === option.name);
+        const optionBooked = alreadyBooked.filter(book => book.treatment === option.names);
         const bookedSlots = optionBooked.map(book => book.slot);
          const remainingSlots = option.slots.filter(slot => !bookedSlots.includes(slot));
         option.slots = remainingSlots;
@@ -121,6 +118,14 @@ async function run() {
       const query = { email }
       const user = await usersCollection.findOne(query);
       res.send({ isDoctor: user?.type === 'doctor' });
+    });
+
+    app.get('/users/admin/:email', async (req, res) => {
+      await client.connect();
+      const email = req.params.email;
+      const query = { email }
+      const user = await usersCollection.findOne(query);
+      res.send({ isAdmin: user?.type === 'admin' });
     });
 
     app.get('/users/isUser/:email', async (req, res) => {
